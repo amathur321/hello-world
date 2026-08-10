@@ -1,0 +1,36 @@
+{
+  "id": "proxy",
+  "title": "Expressif - proxy teardown",
+  "status": "blocked",
+  "session": {
+    "type": "claude-code",
+    "ref": "cc-3aa77"
+  },
+  "resume": {
+    "last": "MCP boundary tests passing",
+    "next": "Resume once 4.3 merges"
+  },
+  "blocker": {
+    "type": "dependency",
+    "detail": "Waiting on the serialized adapter contract (4.3) to land before the teardown can be demoed."
+  },
+  "triage": {
+    "priority": 2,
+    "effort": "L",
+    "energy": "deep"
+  },
+  "edges": [
+    {
+      "to": "cards",
+      "kind": "blocks"
+    }
+  ],
+  "doneWhen": [
+    "One widget channel",
+    "Demoable via a built-in tool"
+  ],
+  "pos": {
+    "x": 1035,
+    "y": 390
+  }
+}

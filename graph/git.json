@@ -1,0 +1,30 @@
+{
+  "id": "git",
+  "title": "Git graph store",
+  "status": "resolved",
+  "session": {
+    "type": "claude-code",
+    "ref": "cc-1120f"
+  },
+  "resume": {
+    "last": "Committed node schema + example stars",
+    "next": "-"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 2,
+    "effort": "S",
+    "energy": "light"
+  },
+  "edges": [],
+  "doneWhen": [
+    "Every star is a diffable file",
+    "Versioned + portable"
+  ],
+  "pos": {
+    "x": 290,
+    "y": 435
+  }
+}

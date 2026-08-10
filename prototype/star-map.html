@@ -270,8 +270,9 @@
 
   .branchbox { grid-column: 1/-1; display: none; gap: 8px; }
   .branchbox.show { display: flex; }
-  .branchbox input { flex: 1; font: inherit; font-size: 13px; background: var(--ground); border: 1px solid var(--line-2); color: var(--ink); padding: 8px 10px; border-radius: 8px; }
-  .branchbox input:focus { outline: none; border-color: var(--beacon); }
+  .branchbox input, .branchbox select { flex: 1; font: inherit; font-size: 13px; background: var(--ground); border: 1px solid var(--line-2); color: var(--ink); padding: 8px 10px; border-radius: 8px; }
+  .branchbox input:focus, .branchbox select:focus { outline: none; border-color: var(--beacon); }
+  .branchbox .lbl-min { flex: 1 1 100%; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin: 2px 0 -2px; }
 
   /* ---------- toast ---------- */
   .toast {
@@ -303,6 +304,27 @@
   .arch-grid .desc { padding: 13px 0; border-top: 1px solid var(--line); font-size: 12.8px; color: var(--ink-soft); line-height: 1.55; }
   .arch-grid .desc code { font-family: var(--font-mono); font-size: 11.5px; color: var(--beacon); background: var(--beacon-dim); padding: 1px 5px; border-radius: 4px; }
 
+  /* ---------- mobile glance ---------- */
+  .glance { position: absolute; inset: 0; background: var(--ground); overflow-y: auto; display: none; z-index: 3; }
+  .glance.on { display: block; }
+  .glance-top { position: sticky; top: 0; z-index: 2; padding: 16px 18px 12px; background: linear-gradient(var(--ground) 78%, transparent); }
+  .glance-top .eyebrow { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); }
+  .glance-top h2 { font-family: var(--font-display); font-size: 22px; margin: 4px 0 0; }
+  .glance-top h2 b { color: var(--beacon); }
+  .g-group { padding: 4px 14px 16px; }
+  .g-group h3 { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .13em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; margin: 14px 4px 9px; }
+  .g-group h3 .n { color: var(--ink-soft); }
+  .g-card { display: block; width: 100%; text-align: left; font: inherit; cursor: pointer; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--c, var(--ink-soft)); border-radius: 11px; padding: 12px 14px; margin-bottom: 9px; transition: .12s; }
+  .g-card:hover, .g-card:focus-visible { border-color: var(--line-2); border-left-color: var(--c); outline: none; }
+  .g-card .ct { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .g-card .gt { font-family: var(--font-display); font-size: 16px; line-height: 1.2; color: var(--ink); }
+  .g-card .gp { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); flex: none; }
+  .g-card .gn { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; line-height: 1.4; }
+  .g-card .gmeta { display: flex; align-items: center; gap: 8px; margin-top: 9px; font-size: 11px; color: var(--ink-faint); }
+  .g-card .gpill { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--ground); background: var(--c, var(--ink-soft)); }
+  .g-card .gsess { font-family: var(--font-mono); }
+  .g-empty { color: var(--ink-faint); font-size: 12.5px; padding: 4px 6px 8px; }
+
   @media (max-width: 860px) {
     .rail { position: absolute; z-index: 6; height: 100%; transform: translateX(-100%); transition: transform .25s; }
     .rail.open { transform: translateX(0); }
@@ -324,6 +346,7 @@
     </div>
     <div class="constellation-name">constellation <b>Wayfinder&nbsp;build</b> · 12 stars</div>
     <div class="spacer"></div>
+    <button class="tbtn" id="glanceBtn" title="Scan-first view for a phone">▤ Glance</button>
     <button class="tbtn" id="fitBtn" title="Frame the whole map">✦ Fit</button>
     <button class="tbtn" id="archBtn">◐ How it wires up</button>
     <button class="tbtn" id="themeBtn" aria-label="Toggle theme">☾ Theme</button>
@@ -369,6 +392,7 @@
         </g>
       </svg>
       <div class="map-hint">drag to pan · scroll to zoom · click a star to open its command center</div>
+      <div class="glance" id="glance"></div>
     </div>
 
     <aside class="drawer" id="drawer" aria-hidden="true"></aside>
@@ -399,8 +423,10 @@
         <div class="desc">Each real session is tagged <code>starmap:&lt;nodeId&gt;</code>. The dashboard maps both ways — node → session and session → node — so a chat and its star stay welded together across Claude Code, Cowork, and claude.ai.</div>
         <div class="layer">Wayfinder skill</div>
         <div class="desc">The command layer inside your chats: <code>/wf branch "topic"</code> forks a linked session + node, <code>/wf park</code> snapshots resume-context and the blocker, <code>/wf next</code> recommends an unblocked frontier, <code>/wf resume &lt;id&gt;</code> reopens a session.</div>
+        <div class="layer">Auto-park</div>
+        <div class="desc">When you signal a wall — "I'm stuck", "come back to this", "blocked on…" — the skill proactively offers to <b>park</b>: it captures the next concrete step and the typed blocker before context is lost. In the map, <b>Park</b> is a capture form, not a status flip.</div>
         <div class="layer">Dashboard</div>
-        <div class="desc">This star map — your command center. Phase 1 renders from the committed graph; phase 2 gains live capabilities so branch / park / resume fire straight from a node back into the harness.</div>
+        <div class="desc">This star map — your command center, with a <b>mobile glance</b> mode that groups threads by what needs you. Phase 1 renders from the committed graph; phase 2 gains live capabilities so branch / park / resume fire straight from a node back into the harness.</div>
         <div class="layer">Nudges</div>
         <div class="desc">A weekly routine sweeps for stale frontier stars and surfaces "these three have been waiting on a decision only you can make."</div>
       </div>
@@ -431,98 +457,40 @@
     "none":        { label: "No session yet", ring: -1, glyph: "·" }
   };
 
-  // ---------- seed constellation ----------
+  // ---------- graph data (regenerated by: scripts/wf.py render) ----------
+  /*WF_DATA_START*/
   let nodes = [
-    { id:"wf",  t:"Wayfinder (the whole idea)", status:"open", type:"chat", x:600, y:400, r:26,
-      prio:1, effort:"L", energy:"deep", blocker:{type:"none"}, sess:"chat-9f2a1",
-      last:"Sketched the node ↔ session binding on a call with myself",
-      next:"Decide the canonical chat surface (see the blocked decision star)",
-      done:["A stalled thread is one click from resuming","Branching a topic always leaves a star"] },
-    { id:"dash", t:"Star-map dashboard", status:"open", type:"claude-code", x:415, y:295, r:19,
-      prio:1, effort:"L", energy:"deep", blocker:{type:"none"}, sess:"cc-7b310",
-      last:"Built pan/zoom + command drawer (you're looking at it)",
-      next:"Wire the branch button to actually spawn a linked session",
-      done:["Click a star → full command center","Branch creates a bound node + chat"] },
-    { id:"bind", t:"Session ↔ node binding", status:"frontier", type:"claude-code", x:470, y:505, r:18,
-      prio:1, effort:"M", energy:"deep", blocker:{type:"none"}, sess:"cc-4a0c8",
-      last:"Confirmed sessions can be tagged + listed by tag",
-      next:"Write starmap:<id> tags on create + resolve both directions",
-      done:["node → session and session → node both resolve","Survives across Code / Cowork / chat"] },
-    { id:"skill", t:"Wayfinder skill: /park + /branch", status:"open", type:"cowork", x:730, y:300, r:18,
-      prio:1, effort:"M", energy:"deep", blocker:{type:"none"}, sess:"cw-22e11",
-      last:"Drafted the command grammar",
-      next:"Implement /park snapshot → write node file + tag session",
-      done:["/branch forks a linked session","/park captures resume-context + blocker"] },
-    { id:"git", t:"Git graph store", status:"resolved", type:"claude-code", x:290, y:435, r:15,
-      prio:2, effort:"S", energy:"light", blocker:{type:"none"}, sess:"cc-1120f",
-      last:"Committed node schema + example stars",
-      next:"—",
-      done:["Every star is a diffable file","Versioned + portable"] },
-    { id:"decide", t:"Which chat surface is canonical?", status:"blocked", type:"chat", x:895, y:215, r:15,
-      prio:2, effort:"S", energy:"light",
-      blocker:{type:"decision", detail:"Cowork vs Claude Code as the primary home for branched chats. This gates the skill design — pick one to unblock /branch."},
-      sess:"chat-55b02",
-      last:"Listed tradeoffs both ways",
-      next:"Just make the call — this is a you-decision, not a research task",
-      done:["One surface chosen as canonical","Skill targets it by default"] },
-    { id:"cap", t:"Auto-capture on wall-hit", status:"idea", type:"none", x:830, y:170, r:13,
-      prio:3, effort:"M", energy:"deep", blocker:{type:"none"}, sess:null,
-      last:"Branched off the skill thread — 'what if parking were automatic?'",
-      next:"Detect 'I'm stuck' phrasing → offer to park",
-      done:["Wall-hits get captured without me remembering to"] },
-    { id:"mobile", t:"Mobile view of the map", status:"idea", type:"none", x:325, y:180, r:13,
-      prio:3, effort:"L", energy:"light", blocker:{type:"none"}, sess:null,
-      last:"Branched off the dashboard thread while on my phone",
-      next:"Decide: responsive artifact vs native",
-      done:["Glance the constellation from my phone"] },
-    { id:"rec", t:"Triage recommender (what next)", status:"frontier", type:"cowork", x:770, y:520, r:16,
-      prio:2, effort:"M", energy:"light", blocker:{type:"none"}, sess:"cw-88a90",
-      last:"Defined 'unblocked frontier, by priority' heuristic",
-      next:"Fold in energy/effort so it fits the time I actually have",
-      done:["'Pick up next' matches my headspace, not just priority"] },
-    { id:"cost", t:"Cost dashboard idea", status:"idea", type:"chat", x:945, y:565, r:12,
-      prio:3, effort:"S", energy:"admin", blocker:{type:"none"}, sess:"chat-71c33",
-      last:"Branched off the recommender chat",
-      next:"Sketch what 'spend per constellation' would show",
-      done:["See where the credits go"] },
-    { id:"nudge", t:"Weekly stale-thread nudge", status:"open", type:"none", x:640, y:600, r:13,
-      prio:3, effort:"S", energy:"admin", blocker:{type:"none"}, sess:null,
-      last:"Decided a routine should sweep stale frontiers",
-      next:"Schedule a weekly trigger → summarize waiting stars",
-      done:["Monday: 'these 3 have been waiting on you'"] },
-    { id:"proxy", t:"Expressif · proxy teardown", status:"blocked", type:"claude-code", x:1035, y:390, r:15,
-      prio:2, effort:"L", energy:"deep",
-      blocker:{type:"dependency", detail:"Waiting on the serialized adapter contract (§4.3) to land before the teardown can be demoed."},
-      sess:"cc-3aa77",
-      last:"MCP boundary tests passing",
-      next:"Resume once §4.3 merges",
-      done:["One widget channel","Demoable via a built-in tool"] },
-    { id:"cards", t:"Expressif · input cards → one model", status:"parked", type:"claude-code", x:1085, y:545, r:14,
-      prio:2, effort:"M", energy:"deep",
-      blocker:{type:"dependency", detail:"Downstream of the proxy teardown."},
-      sess:"cc-9d004",
-      last:"Native questions unified into one card model — then hit the proxy dependency",
-      next:"Unpark when proxy teardown clears",
-      done:["Input cards become one card model"] }
+    {"id": "bind", "t": "Session <-> node binding", "status": "frontier", "type": "claude-code", "x": 470, "y": 505, "r": 19, "prio": 1, "effort": "M", "energy": "deep", "blocker": {"type": "none"}, "sess": "cc-4a0c8", "last": "Confirmed sessions can be tagged and listed by tag", "next": "Write starmap:<id> tags on create, and resolve both directions", "done": ["node -> session and session -> node both resolve", "Survives across Code / Cowork / chat"]},
+    {"id": "cap", "t": "Auto-capture on wall-hit", "status": "idea", "type": "none", "x": 830, "y": 170, "r": 12, "prio": 3, "effort": "M", "energy": "deep", "blocker": {"type": "none"}, "sess": null, "last": "Branched off the skill thread - 'what if parking were automatic?'", "next": "Detect 'I'm stuck' phrasing -> offer to park", "done": ["Wall-hits get captured without me remembering to"]},
+    {"id": "cards", "t": "Expressif - input cards -> one model", "status": "parked", "type": "claude-code", "x": 1085, "y": 545, "r": 15, "prio": 2, "effort": "M", "energy": "deep", "blocker": {"type": "dependency", "detail": "Downstream of the proxy teardown."}, "sess": "cc-9d004", "last": "Native questions unified into one card model - then hit the proxy dependency", "next": "Unpark when proxy teardown clears", "done": ["Input cards become one card model"]},
+    {"id": "cost", "t": "Cost dashboard idea", "status": "idea", "type": "chat", "x": 945, "y": 565, "r": 12, "prio": 3, "effort": "S", "energy": "admin", "blocker": {"type": "none"}, "sess": "chat-71c33", "last": "Branched off the recommender chat", "next": "Sketch what 'spend per constellation' would show", "done": ["See where the credits go"]},
+    {"id": "dash", "t": "Star-map dashboard", "status": "open", "type": "claude-code", "x": 415, "y": 295, "r": 19, "prio": 1, "effort": "L", "energy": "deep", "blocker": {"type": "none"}, "sess": "cc-7b310", "last": "Built pan/zoom + command drawer (you're looking at it)", "next": "Wire the branch button to actually spawn a linked session", "done": ["Click a star -> full command center", "Branch creates a bound node + chat"]},
+    {"id": "decide", "t": "Which chat surface is canonical?", "status": "blocked", "type": "chat", "x": 895, "y": 215, "r": 15, "prio": 2, "effort": "S", "energy": "light", "blocker": {"type": "decision", "detail": "Cowork vs Claude Code as the primary home for branched chats. Gates the skill's /branch target - pick one to unblock."}, "sess": "chat-55b02", "last": "Listed the tradeoffs both ways", "next": "Just make the call - this is a you-decision, not a research task", "done": ["One surface chosen as canonical", "Skill targets it by default"]},
+    {"id": "git", "t": "Git graph store", "status": "resolved", "type": "claude-code", "x": 290, "y": 435, "r": 15, "prio": 2, "effort": "S", "energy": "light", "blocker": {"type": "none"}, "sess": "cc-1120f", "last": "Committed node schema + example stars", "next": "-", "done": ["Every star is a diffable file", "Versioned + portable"]},
+    {"id": "mobile", "t": "Mobile glance of the map", "status": "idea", "type": "none", "x": 325, "y": 180, "r": 12, "prio": 3, "effort": "L", "energy": "light", "blocker": {"type": "none"}, "sess": null, "last": "Branched off the dashboard thread while on my phone", "next": "Decide: responsive artifact vs native", "done": ["Glance the constellation from my phone"]},
+    {"id": "nudge", "t": "Weekly stale-thread nudge", "status": "open", "type": "none", "x": 640, "y": 600, "r": 12, "prio": 3, "effort": "S", "energy": "admin", "blocker": {"type": "none"}, "sess": null, "last": "Decided a routine should sweep stale frontiers", "next": "Schedule a weekly trigger -> summarize waiting stars", "done": ["Monday: 'these 3 have been waiting on you'"]},
+    {"id": "proxy", "t": "Expressif - proxy teardown", "status": "blocked", "type": "claude-code", "x": 1035, "y": 390, "r": 15, "prio": 2, "effort": "L", "energy": "deep", "blocker": {"type": "dependency", "detail": "Waiting on the serialized adapter contract (4.3) to land before the teardown can be demoed."}, "sess": "cc-3aa77", "last": "MCP boundary tests passing", "next": "Resume once 4.3 merges", "done": ["One widget channel", "Demoable via a built-in tool"]},
+    {"id": "rec", "t": "Triage recommender (what next)", "status": "frontier", "type": "cowork", "x": 770, "y": 520, "r": 15, "prio": 2, "effort": "M", "energy": "light", "blocker": {"type": "none"}, "sess": "cw-88a90", "last": "Defined 'unblocked frontier, by priority' heuristic", "next": "Fold in energy/effort so it fits the time I actually have", "done": ["'Pick up next' matches my headspace, not just priority"]},
+    {"id": "skill", "t": "Wayfinder skill: /park + /branch", "status": "open", "type": "cowork", "x": 730, "y": 300, "r": 19, "prio": 1, "effort": "M", "energy": "deep", "blocker": {"type": "none"}, "sess": "cw-22e11", "last": "Drafted the command grammar", "next": "Implement /park snapshot -> write node file + tag session", "done": ["/branch forks a linked session", "/park captures resume-context + blocker"]},
+    {"id": "wf", "t": "Wayfinder (the whole idea)", "status": "open", "type": "chat", "x": 600, "y": 400, "r": 25, "prio": 1, "effort": "L", "energy": "deep", "blocker": {"type": "none"}, "sess": "chat-9f2a1", "last": "Sketched the node <-> session binding on a call with myself", "next": "Decide the canonical chat surface (see the blocked decision star)", "done": ["A stalled thread is one click from resuming", "Branching a topic always leaves a star"]}
   ];
-
-  // edges: {from, to, kind}  kind: partof | depends | blocks | branch
   let edges = [
-    { from:"dash", to:"wf",   kind:"partof" },
-    { from:"bind", to:"wf",   kind:"partof" },
-    { from:"skill",to:"wf",   kind:"partof" },
-    { from:"rec",  to:"wf",   kind:"partof" },
-    { from:"nudge",to:"wf",   kind:"partof" },
-    { from:"dash", to:"git",  kind:"depends" },
-    { from:"skill",to:"bind", kind:"depends" },
-    { from:"rec",  to:"bind", kind:"depends" },
-    { from:"bind", to:"dash", kind:"blocks" },
-    { from:"decide",to:"skill",kind:"blocks" },
-    { from:"cap",  to:"skill",kind:"branch" },
-    { from:"mobile",to:"dash",kind:"branch" },
-    { from:"cost", to:"rec",  kind:"branch" },
-    { from:"proxy",to:"cards",kind:"blocks" }
+    {"from": "bind", "to": "wf", "kind": "partof"},
+    {"from": "bind", "to": "dash", "kind": "blocks"},
+    {"from": "cap", "to": "skill", "kind": "branch"},
+    {"from": "cost", "to": "rec", "kind": "branch"},
+    {"from": "dash", "to": "wf", "kind": "partof"},
+    {"from": "dash", "to": "git", "kind": "depends"},
+    {"from": "decide", "to": "skill", "kind": "blocks"},
+    {"from": "mobile", "to": "dash", "kind": "branch"},
+    {"from": "nudge", "to": "wf", "kind": "partof"},
+    {"from": "proxy", "to": "cards", "kind": "blocks"},
+    {"from": "rec", "to": "wf", "kind": "partof"},
+    {"from": "rec", "to": "bind", "kind": "depends"},
+    {"from": "skill", "to": "wf", "kind": "partof"},
+    {"from": "skill", "to": "bind", "kind": "depends"}
   ];
+  /*WF_DATA_END*/
 
   const byId = id => nodes.find(n => n.id === id);
 
@@ -582,6 +550,7 @@
       g.appendChild(lbl);
       gNodes.appendChild(g);
     });
+    if (glanceOn) renderGlance();
   }
 
   // ---------- command drawer ----------
@@ -646,6 +615,18 @@
           <input id="branchInput" placeholder="New topic to branch off…" />
           <button class="act" id="branchGo" style="flex:none">Spin up</button>
         </div>
+        <div class="branchbox" id="parkBox" style="flex-wrap:wrap">
+          <div class="lbl-min">Capture before you lose it</div>
+          <select id="parkType" aria-label="Blocker type" style="flex:1 1 46%">
+            <option value="none">no blocker</option>
+            <option value="decision">decision needed</option>
+            <option value="dependency">waiting on dependency</option>
+            <option value="research">needs research</option>
+          </select>
+          <input id="parkDetail" style="flex:1 1 46%" placeholder="what's in the way? (optional)" />
+          <input id="parkNext" placeholder="next concrete step…" />
+          <button class="act" id="parkGo" style="flex:none">Capture &amp; park</button>
+        </div>
         <button class="act" id="actBranch">⋔ Branch</button>
         <button class="act" id="actPark">${n.status==="parked"?"↺ Unpark":"⏸ Park"}</button>
         <button class="act" id="actResolve" style="grid-column:1/-1">${n.status==="resolved"?"↺ Reopen":"✓ Resolve"}</button>
@@ -655,10 +636,27 @@
     $("#drawerClose").onclick = closeDrawer;
     drawer.querySelectorAll(".rel").forEach(r => r.onclick = () => openDrawer(r.dataset.goto));
     $("#actResume").onclick = () => toast(n.sess ? `Would reopen ${n.sess} and resume with saved context` : "No session yet — Branch to spin one up");
-    $("#actBranch").onclick = () => { $("#branchBox").classList.toggle("show"); $("#branchInput").focus(); };
+    $("#actBranch").onclick = () => { $("#parkBox").classList.remove("show"); $("#branchBox").classList.toggle("show"); $("#branchInput").focus(); };
     $("#branchGo").onclick = doBranch;
     $("#branchInput").onkeydown = e => { if (e.key === "Enter") doBranch(); };
-    $("#actPark").onclick = () => { n.status = n.status==="parked" ? "open" : "parked"; openDrawer(id); toast(n.status==="parked"?"Parked · resume-context saved":"Unparked"); computeRecommend(); };
+    $("#actPark").onclick = () => {
+      if (n.status === "parked") { n.status = "open"; openDrawer(id); toast("Unparked · back in flight"); computeRecommend(); return; }
+      $("#branchBox").classList.remove("show");
+      const box = $("#parkBox"); box.classList.toggle("show");
+      $("#parkType").value = (n.blocker && n.blocker.type) || "none";
+      $("#parkDetail").value = (n.blocker && n.blocker.detail) || "";
+      $("#parkNext").value = n.next || "";
+      $("#parkNext").focus();
+    };
+    $("#parkGo").onclick = () => {
+      const bt = $("#parkType").value, bd = $("#parkDetail").value.trim(), nx = $("#parkNext").value.trim();
+      n.status = "parked";
+      n.blocker = bt === "none" ? { type: "none" } : { type: bt, detail: bd };
+      if (nx) n.next = nx;
+      openDrawer(id);
+      toast("Parked · context captured — nothing lost");
+      computeRecommend();
+    };
     $("#actResolve").onclick = () => { n.status = n.status==="resolved" ? "open" : "resolved"; openDrawer(id); toast(n.status==="resolved"?"Star collapsed — resolved ✓":"Reopened"); computeRecommend(); };
 
     function doBranch() {
@@ -708,6 +706,45 @@
   // ---------- toast ----------
   let toastT;
   function toast(msg) { $("#toastMsg").textContent = msg; const t = $("#toast"); t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"), 2600); }
+
+  // ---------- mobile glance ----------
+  let glanceOn = false, glanceManual = false;
+  const GLANCE_GROUPS = [
+    { h: "Waiting on you", test: n => n.status === "blocked" && n.blocker && n.blocker.type === "decision" },
+    { h: "Ready to advance", test: n => n.status === "frontier" },
+    { h: "In flight", test: n => n.status === "open" },
+    { h: "Parked", test: n => n.status === "parked" },
+    { h: "Blocked · external", test: n => n.status === "blocked" && !(n.blocker && n.blocker.type === "decision") },
+    { h: "Ideas", test: n => n.status === "idea" }
+  ];
+  function renderGlance() {
+    const waiting = nodes.filter(GLANCE_GROUPS[0].test).length;
+    let html = `<div class="glance-top"><div class="eyebrow">constellation · Wayfinder build</div>`
+      + `<h2>${waiting ? `<b>${waiting}</b> ${waiting===1?"thread is":"threads are"} waiting on you` : "Nothing blocked on you"}</h2></div>`;
+    GLANCE_GROUPS.forEach(g => {
+      const items = nodes.filter(g.test);
+      if (!items.length) return;
+      html += `<div class="g-group"><h3>${g.h} <span class="n">· ${items.length}</span></h3>`;
+      items.sort((a,b)=>a.prio-b.prio).forEach(n => {
+        const st = STATUS[n.status], ty = TYPE[n.type];
+        const sess = n.sess ? `<span class="gsess">${ty.glyph} ${n.sess}</span>` : `<span class="gsess">${ty.glyph} ${ty.label}</span>`;
+        html += `<button class="g-card" data-id="${n.id}" style="--c:${st.c}">`
+          + `<div class="ct"><span class="gt">${n.t}</span><span class="gp">P${n.prio} · ${n.effort}</span></div>`
+          + `<div class="gn">${n.status==="blocked" && n.blocker && n.blocker.detail ? "⚑ "+n.blocker.detail : "→ "+n.next}</div>`
+          + `<div class="gmeta"><span class="gpill" style="--c:${st.c}">${st.label}</span>${sess}</div></button>`;
+      });
+      html += `</div>`;
+    });
+    const g = $("#glance"); g.innerHTML = html;
+    g.querySelectorAll(".g-card").forEach(c => c.onclick = () => openDrawer(c.dataset.id));
+  }
+  function setGlance(on) {
+    glanceOn = on;
+    $("#glance").classList.toggle("on", on);
+    $("#glanceBtn").style.color = on ? "var(--beacon)" : "";
+    if (on) renderGlance();
+  }
+  $("#glanceBtn").onclick = () => { glanceManual = true; setGlance(!glanceOn); };
 
   // ---------- chips ----------
   function buildChips() {
@@ -818,7 +855,11 @@
 
   // responsive rail
   const railBtn = $("#railBtn");
-  function checkNarrow() { const narrow = innerWidth <= 860; railBtn.style.display = narrow ? "inline-flex" : "none"; if (!narrow) $("#rail").classList.remove("open"); }
+  function checkNarrow() {
+    const narrow = innerWidth <= 860; railBtn.style.display = narrow ? "inline-flex" : "none";
+    if (!narrow) $("#rail").classList.remove("open");
+    if (!glanceManual) setGlance(innerWidth <= 700);
+  }
   railBtn.onclick = () => $("#rail").classList.toggle("open");
 
   // ---------- init ----------

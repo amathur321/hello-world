@@ -1,0 +1,30 @@
+{
+  "id": "cards",
+  "title": "Expressif - input cards -> one model",
+  "status": "parked",
+  "session": {
+    "type": "claude-code",
+    "ref": "cc-9d004"
+  },
+  "resume": {
+    "last": "Native questions unified into one card model - then hit the proxy dependency",
+    "next": "Unpark when proxy teardown clears"
+  },
+  "blocker": {
+    "type": "dependency",
+    "detail": "Downstream of the proxy teardown."
+  },
+  "triage": {
+    "priority": 2,
+    "effort": "M",
+    "energy": "deep"
+  },
+  "edges": [],
+  "doneWhen": [
+    "Input cards become one card model"
+  ],
+  "pos": {
+    "x": 1085,
+    "y": 545
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "skill",
+  "title": "Wayfinder skill: /park + /branch",
+  "status": "open",
+  "session": {
+    "type": "cowork",
+    "ref": "cw-22e11"
+  },
+  "resume": {
+    "last": "Drafted the command grammar",
+    "next": "Implement /park snapshot -> write node file + tag session"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 1,
+    "effort": "M",
+    "energy": "deep"
+  },
+  "edges": [
+    {
+      "to": "wf",
+      "kind": "part-of"
+    },
+    {
+      "to": "bind",
+      "kind": "depends"
+    }
+  ],
+  "doneWhen": [
+    "/branch forks a linked session",
+    "/park captures resume-context + blocker"
+  ],
+  "pos": {
+    "x": 730,
+    "y": 300
+  }
+}

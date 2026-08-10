@@ -1,0 +1,34 @@
+{
+  "id": "nudge",
+  "title": "Weekly stale-thread nudge",
+  "status": "open",
+  "session": {
+    "type": "none",
+    "ref": null
+  },
+  "resume": {
+    "last": "Decided a routine should sweep stale frontiers",
+    "next": "Schedule a weekly trigger -> summarize waiting stars"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 3,
+    "effort": "S",
+    "energy": "admin"
+  },
+  "edges": [
+    {
+      "to": "wf",
+      "kind": "part-of"
+    }
+  ],
+  "doneWhen": [
+    "Monday: 'these 3 have been waiting on you'"
+  ],
+  "pos": {
+    "x": 640,
+    "y": 600
+  }
+}

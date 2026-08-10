@@ -1,0 +1,38 @@
+{
+  "id": "rec",
+  "title": "Triage recommender (what next)",
+  "status": "frontier",
+  "session": {
+    "type": "cowork",
+    "ref": "cw-88a90"
+  },
+  "resume": {
+    "last": "Defined 'unblocked frontier, by priority' heuristic",
+    "next": "Fold in energy/effort so it fits the time I actually have"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 2,
+    "effort": "M",
+    "energy": "light"
+  },
+  "edges": [
+    {
+      "to": "wf",
+      "kind": "part-of"
+    },
+    {
+      "to": "bind",
+      "kind": "depends"
+    }
+  ],
+  "doneWhen": [
+    "'Pick up next' matches my headspace, not just priority"
+  ],
+  "pos": {
+    "x": 770,
+    "y": 520
+  }
+}

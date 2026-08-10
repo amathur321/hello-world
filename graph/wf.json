@@ -1,0 +1,30 @@
+{
+  "id": "wf",
+  "title": "Wayfinder (the whole idea)",
+  "status": "open",
+  "session": {
+    "type": "chat",
+    "ref": "chat-9f2a1"
+  },
+  "resume": {
+    "last": "Sketched the node <-> session binding on a call with myself",
+    "next": "Decide the canonical chat surface (see the blocked decision star)"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 1,
+    "effort": "L",
+    "energy": "deep"
+  },
+  "edges": [],
+  "doneWhen": [
+    "A stalled thread is one click from resuming",
+    "Branching a topic always leaves a star"
+  ],
+  "pos": {
+    "x": 600,
+    "y": 400
+  }
+}

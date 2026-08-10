@@ -1,0 +1,39 @@
+{
+  "id": "dash",
+  "title": "Star-map dashboard",
+  "status": "open",
+  "session": {
+    "type": "claude-code",
+    "ref": "cc-7b310"
+  },
+  "resume": {
+    "last": "Built pan/zoom + command drawer (you're looking at it)",
+    "next": "Wire the branch button to actually spawn a linked session"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 1,
+    "effort": "L",
+    "energy": "deep"
+  },
+  "edges": [
+    {
+      "to": "wf",
+      "kind": "part-of"
+    },
+    {
+      "to": "git",
+      "kind": "depends"
+    }
+  ],
+  "doneWhen": [
+    "Click a star -> full command center",
+    "Branch creates a bound node + chat"
+  ],
+  "pos": {
+    "x": 415,
+    "y": 295
+  }
+}

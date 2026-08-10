@@ -1,0 +1,34 @@
+{
+  "id": "mobile",
+  "title": "Mobile glance of the map",
+  "status": "idea",
+  "session": {
+    "type": "none",
+    "ref": null
+  },
+  "resume": {
+    "last": "Branched off the dashboard thread while on my phone",
+    "next": "Decide: responsive artifact vs native"
+  },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 3,
+    "effort": "L",
+    "energy": "light"
+  },
+  "edges": [
+    {
+      "to": "dash",
+      "kind": "branch"
+    }
+  ],
+  "doneWhen": [
+    "Glance the constellation from my phone"
+  ],
+  "pos": {
+    "x": 325,
+    "y": 180
+  }
+}

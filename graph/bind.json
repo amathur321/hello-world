@@ -1,20 +1,39 @@
 {
   "id": "bind",
-  "title": "Session ↔ node binding",
+  "title": "Session <-> node binding",
   "status": "frontier",
-  "session": { "type": "claude-code", "ref": "cc-4a0c8" },
+  "session": {
+    "type": "claude-code",
+    "ref": "cc-4a0c8"
+  },
   "resume": {
     "last": "Confirmed sessions can be tagged and listed by tag",
-    "next": "Write starmap:<id> tags on session create, and resolve both directions"
+    "next": "Write starmap:<id> tags on create, and resolve both directions"
   },
-  "blocker": { "type": "none" },
-  "triage": { "priority": 1, "effort": "M", "energy": "deep" },
+  "blocker": {
+    "type": "none"
+  },
+  "triage": {
+    "priority": 1,
+    "effort": "M",
+    "energy": "deep"
+  },
   "edges": [
-    { "to": "wf", "kind": "part-of" },
-    { "to": "dash", "kind": "blocks" }
+    {
+      "to": "wf",
+      "kind": "part-of"
+    },
+    {
+      "to": "dash",
+      "kind": "blocks"
+    }
   ],
   "doneWhen": [
-    "node → session and session → node both resolve",
-    "Binding survives across Claude Code, Cowork, and chat"
-  ]
+    "node -> session and session -> node both resolve",
+    "Survives across Code / Cowork / chat"
+  ],
+  "pos": {
+    "x": 470,
+    "y": 505
+  }
 }
