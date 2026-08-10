@@ -1,0 +1,835 @@
+<style>
+  /* ============================================================
+     WAYFINDER — a celestial-navigation dashboard for stalled work
+     Dark-first (night sky is canonical); light = antique paper chart.
+     ============================================================ */
+
+  :root {
+    /* ---- DARK / night sky (canonical, unstamped default) ---- */
+    --ground:      #080b14;
+    --ground-2:    #0d1220;
+    --panel:       #111827;
+    --panel-2:     #0f1524;
+    --ink:         #e9edf7;
+    --ink-soft:    #8b94ab;
+    --ink-faint:   #5b6479;
+    --line:        rgba(210,222,248,.10);
+    --line-2:      rgba(210,222,248,.16);
+    --star:        rgba(222,232,255,.85);
+    --constellation: rgba(150,180,235,.20);
+    --beacon:      #56d8e2;
+    --beacon-dim:  rgba(86,216,226,.16);
+
+    --st-idea:     #a693e0;
+    --st-open:     #4fd6a0;
+    --st-frontier: #f2c14e;
+    --st-blocked:  #e0685f;
+    --st-parked:   #6b7690;
+    --st-resolved: #b9c6e0;
+
+    --shadow: 0 18px 50px -20px rgba(0,0,0,.7);
+    --r: 12px;
+
+    --font-display: "Iowan Old Style","Palatino Linotype",Palatino,Georgia,ui-serif,serif;
+    --font-ui: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-mono: ui-monospace,"SF Mono","Cascadia Code",Menlo,monospace;
+  }
+
+  /* system-light viewers (unstamped) → antique paper chart */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ground:      #e7e0cf;
+      --ground-2:    #efe8d7;
+      --panel:       #f4eede;
+      --panel-2:     #eee7d4;
+      --ink:         #1d2333;
+      --ink-soft:    #5c6274;
+      --ink-faint:   #8a8778;
+      --line:        rgba(29,35,51,.14);
+      --line-2:      rgba(29,35,51,.22);
+      --star:        rgba(29,35,51,.55);
+      --constellation: rgba(29,35,51,.24);
+      --beacon:      #0c7b84;
+      --beacon-dim:  rgba(12,123,132,.12);
+      --st-idea:     #6f52bf;
+      --st-open:     #158a5e;
+      --st-frontier: #b57e10;
+      --st-blocked:  #b8423a;
+      --st-parked:   #6f788c;
+      --st-resolved: #8593ad;
+      --shadow: 0 18px 40px -22px rgba(60,50,20,.4);
+    }
+  }
+  /* explicit toggles win in both directions */
+  :root[data-theme="light"] {
+    --ground:#e7e0cf; --ground-2:#efe8d7; --panel:#f4eede; --panel-2:#eee7d4;
+    --ink:#1d2333; --ink-soft:#5c6274; --ink-faint:#8a8778;
+    --line:rgba(29,35,51,.14); --line-2:rgba(29,35,51,.22);
+    --star:rgba(29,35,51,.55); --constellation:rgba(29,35,51,.24);
+    --beacon:#0c7b84; --beacon-dim:rgba(12,123,132,.12);
+    --st-idea:#6f52bf; --st-open:#158a5e; --st-frontier:#b57e10;
+    --st-blocked:#b8423a; --st-parked:#6f788c; --st-resolved:#8593ad;
+    --shadow:0 18px 40px -22px rgba(60,50,20,.4);
+  }
+  :root[data-theme="dark"] {
+    --ground:#080b14; --ground-2:#0d1220; --panel:#111827; --panel-2:#0f1524;
+    --ink:#e9edf7; --ink-soft:#8b94ab; --ink-faint:#5b6479;
+    --line:rgba(210,222,248,.10); --line-2:rgba(210,222,248,.16);
+    --star:rgba(222,232,255,.85); --constellation:rgba(150,180,235,.20);
+    --beacon:#56d8e2; --beacon-dim:rgba(86,216,226,.16);
+    --st-idea:#a693e0; --st-open:#4fd6a0; --st-frontier:#f2c14e;
+    --st-blocked:#e0685f; --st-parked:#6b7690; --st-resolved:#b9c6e0;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; gap: 18px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(to bottom, var(--ground-2), var(--ground));
+    z-index: 5;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .mark {
+    font-family: var(--font-display);
+    font-size: 22px; letter-spacing: .5px; font-weight: 600;
+  }
+  .brand .mark em { color: var(--beacon); font-style: normal; }
+  .brand .sub {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .constellation-name {
+    margin-left: 4px; padding: 4px 12px; border: 1px solid var(--line-2);
+    border-radius: 999px; font-size: 12.5px; color: var(--ink-soft);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .constellation-name b { color: var(--ink); font-weight: 600; }
+  .spacer { flex: 1; }
+  .tbtn {
+    font: inherit; font-size: 13px; color: var(--ink-soft);
+    background: transparent; border: 1px solid var(--line-2);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px; transition: .15s;
+  }
+  .tbtn:hover { color: var(--ink); border-color: var(--beacon); }
+  .tbtn:focus-visible { outline: 2px solid var(--beacon); outline-offset: 2px; }
+
+  /* ---------- stage ---------- */
+  .stage { flex: 1; min-height: 0; display: flex; position: relative; }
+
+  /* ---------- left rail ---------- */
+  .rail {
+    width: 258px; flex: none; overflow-y: auto;
+    border-right: 1px solid var(--line);
+    background: var(--ground-2);
+    padding: 16px 14px 28px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .rail h3 {
+    margin: 0 0 9px; font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 600;
+  }
+  .pickup {
+    border: 1px solid var(--line-2); border-radius: var(--r);
+    background: linear-gradient(160deg, var(--beacon-dim), transparent 70%);
+    padding: 13px;
+  }
+  .pickup .why {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .05em;
+    color: var(--st-frontier); text-transform: uppercase; margin-bottom: 7px;
+  }
+  .pickup .title { font-family: var(--font-display); font-size: 16.5px; line-height: 1.2; margin-bottom: 4px; }
+  .pickup .meta { font-size: 12px; color: var(--ink-soft); margin-bottom: 11px; }
+  .pickup button {
+    width: 100%; font: inherit; font-size: 12.5px; font-weight: 600;
+    color: var(--ground); background: var(--beacon); border: 0;
+    padding: 8px; border-radius: 8px; cursor: pointer; transition: .15s;
+  }
+  .pickup button:hover { filter: brightness(1.08); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font: inherit; font-size: 11.5px; cursor: pointer;
+    padding: 4px 9px 4px 8px; border-radius: 999px;
+    border: 1px solid var(--line-2); background: transparent; color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 6px; transition: .12s;
+  }
+  .chip:hover { color: var(--ink); }
+  .chip[aria-pressed="false"] { opacity: .4; }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--ink-soft)); box-shadow: 0 0 6px var(--c, transparent); }
+
+  .legend { display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: var(--ink-soft); }
+  .legend .row { display: flex; align-items: center; gap: 9px; }
+  .legend .swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  .legend .edge { width: 22px; height: 0; flex: none; border-top: 2px solid var(--ink-faint); }
+  .legend .edge.blocks { border-top-style: dashed; border-top-color: var(--st-blocked); }
+  .legend .edge.depends { border-top-color: var(--ink-soft); }
+  .legend .edge.partof { border-top-color: var(--constellation); border-top-width: 3px; }
+  .legend .edge.branch { border-top-style: dotted; border-top-color: var(--beacon); }
+
+  /* ---------- map ---------- */
+  .map-wrap { flex: 1; position: relative; min-width: 0; overflow: hidden; }
+  #stars { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #map { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+  #map.panning { cursor: grabbing; }
+  .map-hint {
+    position: absolute; left: 16px; bottom: 14px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint);
+    letter-spacing: .04em; pointer-events: none;
+  }
+
+  /* edges */
+  .edge-line { fill: none; }
+  .edge-blocks  { stroke: var(--st-blocked); stroke-width: 1.4; stroke-dasharray: 5 4; opacity: .7; }
+  .edge-depends { stroke: var(--ink-soft); stroke-width: 1.2; opacity: .5; }
+  .edge-partof  { stroke: var(--constellation); stroke-width: 2.4; opacity: .9; }
+  .edge-branch  { stroke: var(--beacon); stroke-width: 1.3; stroke-dasharray: 1.5 4; stroke-linecap: round; opacity: .75; }
+
+  /* nodes */
+  .node { cursor: pointer; }
+  .node:focus { outline: none; }
+  .node .halo { fill: var(--c); opacity: .12; transition: opacity .2s, r .2s; }
+  .node .core { fill: var(--c); stroke: var(--ground); stroke-width: 1.5; }
+  .node .ring { fill: none; stroke: var(--ink-soft); stroke-width: 1.2; opacity: .55; }
+  .node .sel  { fill: none; stroke: var(--beacon); stroke-width: 1.6; opacity: 0; transition: opacity .2s; }
+  .node .lbl  { fill: var(--ink); font-size: 12.5px; font-family: var(--font-ui); paint-order: stroke; stroke: var(--ground); stroke-width: 3px; stroke-linejoin: round; }
+  .node .lbl.dim { fill: var(--ink-soft); }
+  .node:hover .halo { opacity: .22; }
+  .node.selected .sel { opacity: 1; }
+  .node.selected .halo { opacity: .26; }
+  .node.recommend .halo { opacity: .3; animation: pulse 2s ease-in-out infinite; }
+  .node.faded { opacity: .18; }
+  .node.new-pop .core { animation: pop .5s cubic-bezier(.2,1.3,.4,1); }
+  @keyframes pulse { 0%,100% { opacity:.18 } 50% { opacity:.42 } }
+  @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+  /* ---------- command-center drawer ---------- */
+  .drawer {
+    position: absolute; top: 0; right: 0; height: 100%; width: 358px;
+    background: var(--panel); border-left: 1px solid var(--line-2);
+    box-shadow: var(--shadow);
+    transform: translateX(100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column; z-index: 4;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 16px 18px 14px; border-bottom: 1px solid var(--line); }
+  .drawer-head .toprow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .pill {
+    font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 999px; color: var(--ground);
+    background: var(--c, var(--ink-soft)); display: inline-flex; align-items: center; gap: 5px;
+  }
+  .closeb { background: transparent; border: 0; color: var(--ink-soft); cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .closeb:hover { color: var(--ink); }
+  .drawer h2 { font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 1.18; margin: 12px 0 8px; text-wrap: balance; }
+  .sessref { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+  .sessref .tag { color: var(--beacon); }
+
+  .drawer-body { flex: 1; overflow-y: auto; padding: 4px 18px 18px; }
+  .field { padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .field:last-child { border-bottom: 0; }
+  .field .k { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 7px; font-weight: 600; }
+  .field .v { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .field .v.mono { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); }
+  .blocker { border-radius: 9px; padding: 11px 12px; background: color-mix(in srgb, var(--st-blocked) 12%, transparent); border: 1px solid color-mix(in srgb, var(--st-blocked) 30%, transparent); }
+  .blocker .btype { font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--st-blocked); margin-bottom: 5px; }
+  .blocker.none { background: transparent; border-color: var(--line); }
+  .blocker.none .btype { color: var(--st-open); }
+  .triage { display: flex; gap: 8px; }
+  .triage .t { flex: 1; border: 1px solid var(--line-2); border-radius: 8px; padding: 8px; text-align: center; }
+  .triage .t .tv { font-size: 15px; font-weight: 600; font-family: var(--font-display); }
+  .triage .t .tk { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 2px; }
+  .rels { display: flex; flex-direction: column; gap: 7px; }
+  .rel { display: flex; align-items: center; gap: 9px; font-size: 12.5px; cursor: pointer; padding: 5px 7px; border-radius: 7px; transition: .12s; }
+  .rel:hover { background: var(--panel-2); }
+  .rel .rk { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-faint); width: 74px; flex: none; }
+  .rel .rt { color: var(--ink); }
+  .rel .rdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .done .di { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.4; color: var(--ink-soft); margin-bottom: 6px; }
+  .done .di .box { margin-top: 1px; color: var(--st-open); flex: none; }
+
+  .drawer-actions { padding: 12px 14px; border-top: 1px solid var(--line-2); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--panel-2); }
+  .act { font: inherit; font-size: 12.5px; font-weight: 600; padding: 9px; border-radius: 8px; cursor: pointer; border: 1px solid var(--line-2); background: transparent; color: var(--ink); transition: .14s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .act:hover { border-color: var(--beacon); }
+  .act.primary { grid-column: 1 / -1; background: var(--beacon); color: var(--ground); border-color: var(--beacon); }
+  .act.primary:hover { filter: brightness(1.08); }
+  .act:focus-visible { outline: 2px solid var(--beacon); outline-offset: 2px; }
+
+  .branchbox { grid-column: 1/-1; display: none; gap: 8px; }
+  .branchbox.show { display: flex; }
+  .branchbox input { flex: 1; font: inherit; font-size: 13px; background: var(--ground); border: 1px solid var(--line-2); color: var(--ink); padding: 8px 10px; border-radius: 8px; }
+  .branchbox input:focus { outline: none; border-color: var(--beacon); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: absolute; bottom: 20px; left: 50%; transform: translate(-50%, 20px);
+    background: var(--panel); border: 1px solid var(--beacon); color: var(--ink);
+    padding: 11px 16px; border-radius: 10px; font-size: 13px; box-shadow: var(--shadow);
+    opacity: 0; pointer-events: none; transition: .25s; z-index: 20; max-width: 80%;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast .tdot { width: 8px; height: 8px; border-radius: 50%; background: var(--beacon); box-shadow: 0 0 8px var(--beacon); flex: none; }
+
+  /* ---------- architecture modal ---------- */
+  .modal { position: fixed; inset: 0; background: rgba(4,6,12,.62); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 40; padding: 24px; }
+  .modal.open { display: flex; }
+  .sheet { background: var(--panel); border: 1px solid var(--line-2); border-radius: 16px; max-width: 760px; width: 100%; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow); }
+  .sheet-head { padding: 20px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .sheet-head h2 { font-family: var(--font-display); font-size: 23px; margin: 0; }
+  .sheet-head p { color: var(--ink-soft); font-size: 13.5px; margin: 6px 0 0; }
+  .sheet-body { padding: 18px 24px 26px; }
+  .loop { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 8px 0 22px; }
+  .loop .step { border: 1px solid var(--line-2); border-radius: 10px; padding: 12px; position: relative; }
+  .loop .step .n { font-family: var(--font-mono); font-size: 10px; color: var(--beacon); letter-spacing: .1em; }
+  .loop .step .h { font-weight: 600; font-size: 13.5px; margin: 4px 0 3px; font-family: var(--font-display); }
+  .loop .step .d { font-size: 11.5px; color: var(--ink-soft); line-height: 1.4; }
+  .loop .step:not(:last-child)::after { content: "→"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); color: var(--ink-faint); font-size: 13px; z-index: 2; }
+  .arch-grid { display: grid; grid-template-columns: 148px 1fr; gap: 0; }
+  .arch-grid .layer { padding: 13px 0; border-top: 1px solid var(--line); font-weight: 600; font-size: 13.5px; font-family: var(--font-display); }
+  .arch-grid .desc { padding: 13px 0; border-top: 1px solid var(--line); font-size: 12.8px; color: var(--ink-soft); line-height: 1.55; }
+  .arch-grid .desc code { font-family: var(--font-mono); font-size: 11.5px; color: var(--beacon); background: var(--beacon-dim); padding: 1px 5px; border-radius: 4px; }
+
+  @media (max-width: 860px) {
+    .rail { position: absolute; z-index: 6; height: 100%; transform: translateX(-100%); transition: transform .25s; }
+    .rail.open { transform: translateX(0); }
+    .drawer { width: 100%; }
+    .loop { grid-template-columns: 1fr 1fr; }
+    .loop .step:not(:last-child)::after { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <button class="tbtn" id="railBtn" style="display:none" aria-label="Toggle panel">☰</button>
+    <div class="brand">
+      <span class="mark">Way<em>·</em>finder</span>
+      <span class="sub">star&nbsp;map</span>
+    </div>
+    <div class="constellation-name">constellation <b>Wayfinder&nbsp;build</b> · 12 stars</div>
+    <div class="spacer"></div>
+    <button class="tbtn" id="fitBtn" title="Frame the whole map">✦ Fit</button>
+    <button class="tbtn" id="archBtn">◐ How it wires up</button>
+    <button class="tbtn" id="themeBtn" aria-label="Toggle theme">☾ Theme</button>
+  </header>
+
+  <div class="stage">
+    <aside class="rail" id="rail">
+      <div>
+        <h3>Pick up next</h3>
+        <div class="pickup" id="pickup"></div>
+      </div>
+      <div>
+        <h3>Filter by status</h3>
+        <div class="chips" id="statusChips"></div>
+      </div>
+      <div>
+        <h3>Filter by session</h3>
+        <div class="chips" id="typeChips"></div>
+      </div>
+      <div>
+        <h3>Reading the chart</h3>
+        <div class="legend">
+          <div class="row"><span class="swatch" style="background:var(--st-frontier)"></span> Frontier — unblocked, ready to advance</div>
+          <div class="row"><span class="swatch" style="background:var(--st-open)"></span> Open — active work in flight</div>
+          <div class="row"><span class="swatch" style="background:var(--st-blocked)"></span> Blocked — waiting on something</div>
+          <div class="row"><span class="swatch" style="background:var(--st-parked)"></span> Parked — stalled, context saved</div>
+          <div class="row"><span class="swatch" style="background:var(--st-idea)"></span> Idea — captured, not started</div>
+          <div class="row"><span class="swatch" style="background:var(--st-resolved)"></span> Resolved — collapsed to a done star</div>
+          <div class="row" style="margin-top:6px"><span class="edge partof"></span> part-of</div>
+          <div class="row"><span class="edge depends"></span> depends-on</div>
+          <div class="row"><span class="edge blocks"></span> blocks</div>
+          <div class="row"><span class="edge branch"></span> branched-from (a new chat)</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="map-wrap">
+      <canvas id="stars"></canvas>
+      <svg id="map" role="application" aria-label="Star map of work threads">
+        <g id="viewport">
+          <g id="edges"></g>
+          <g id="nodes"></g>
+        </g>
+      </svg>
+      <div class="map-hint">drag to pan · scroll to zoom · click a star to open its command center</div>
+    </div>
+
+    <aside class="drawer" id="drawer" aria-hidden="true"></aside>
+    <div class="toast" id="toast"><span class="tdot"></span><span id="toastMsg"></span></div>
+  </div>
+</div>
+
+<div class="modal" id="archModal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div>
+        <h2>How the map drives your chats</h2>
+        <p>The graph is the source of truth. Sessions bind to nodes. The map both reflects and steers the work.</p>
+      </div>
+      <button class="closeb" id="archClose" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div class="loop">
+        <div class="step"><div class="n">01</div><div class="h">Branch a topic</div><div class="d">In any chat, a tangent forks off — Wayfinder spins up a linked session.</div></div>
+        <div class="step"><div class="n">02</div><div class="h">A star appears</div><div class="d">A node is written to the graph and bound to that session by tag.</div></div>
+        <div class="step"><div class="n">03</div><div class="h">Hit a wall → park</div><div class="d">Resume-context + typed blocker are captured before you move on.</div></div>
+        <div class="step"><div class="n">04</div><div class="h">Resume anywhere</div><div class="d">From the map, reopen the exact session with its saved context.</div></div>
+      </div>
+      <div class="arch-grid">
+        <div class="layer">Graph store</div>
+        <div class="desc">Git-tracked node files in <code>graph/</code> — the versioned, portable source of truth. This is the "never lose a thread" guarantee: every star is a diffable file.</div>
+        <div class="layer">Session binding</div>
+        <div class="desc">Each real session is tagged <code>starmap:&lt;nodeId&gt;</code>. The dashboard maps both ways — node → session and session → node — so a chat and its star stay welded together across Claude Code, Cowork, and claude.ai.</div>
+        <div class="layer">Wayfinder skill</div>
+        <div class="desc">The command layer inside your chats: <code>/wf branch "topic"</code> forks a linked session + node, <code>/wf park</code> snapshots resume-context and the blocker, <code>/wf next</code> recommends an unblocked frontier, <code>/wf resume &lt;id&gt;</code> reopens a session.</div>
+        <div class="layer">Dashboard</div>
+        <div class="desc">This star map — your command center. Phase 1 renders from the committed graph; phase 2 gains live capabilities so branch / park / resume fire straight from a node back into the harness.</div>
+        <div class="layer">Nudges</div>
+        <div class="desc">A weekly routine sweeps for stale frontier stars and surfaces "these three have been waiting on a decision only you can make."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const el = (t, a) => { const n = document.createElementNS(SVGNS, t); for (const k in (a||{})) n.setAttribute(k, a[k]); return n; };
+  const $ = s => document.querySelector(s);
+
+  // ---------- status + type metadata ----------
+  const STATUS = {
+    idea:     { label: "Idea",     c: "var(--st-idea)" },
+    open:     { label: "Open",     c: "var(--st-open)" },
+    frontier: { label: "Frontier", c: "var(--st-frontier)" },
+    blocked:  { label: "Blocked",  c: "var(--st-blocked)" },
+    parked:   { label: "Parked",   c: "var(--st-parked)" },
+    resolved: { label: "Resolved", c: "var(--st-resolved)" }
+  };
+  const TYPE = {
+    "claude-code": { label: "Claude Code", ring: 0,   glyph: "⌘" },
+    "cowork":      { label: "Cowork",      ring: 2,   glyph: "⊞" },
+    "chat":        { label: "Chat",        ring: 1,   glyph: "✦" },
+    "none":        { label: "No session yet", ring: -1, glyph: "·" }
+  };
+
+  // ---------- seed constellation ----------
+  let nodes = [
+    { id:"wf",  t:"Wayfinder (the whole idea)", status:"open", type:"chat", x:600, y:400, r:26,
+      prio:1, effort:"L", energy:"deep", blocker:{type:"none"}, sess:"chat-9f2a1",
+      last:"Sketched the node ↔ session binding on a call with myself",
+      next:"Decide the canonical chat surface (see the blocked decision star)",
+      done:["A stalled thread is one click from resuming","Branching a topic always leaves a star"] },
+    { id:"dash", t:"Star-map dashboard", status:"open", type:"claude-code", x:415, y:295, r:19,
+      prio:1, effort:"L", energy:"deep", blocker:{type:"none"}, sess:"cc-7b310",
+      last:"Built pan/zoom + command drawer (you're looking at it)",
+      next:"Wire the branch button to actually spawn a linked session",
+      done:["Click a star → full command center","Branch creates a bound node + chat"] },
+    { id:"bind", t:"Session ↔ node binding", status:"frontier", type:"claude-code", x:470, y:505, r:18,
+      prio:1, effort:"M", energy:"deep", blocker:{type:"none"}, sess:"cc-4a0c8",
+      last:"Confirmed sessions can be tagged + listed by tag",
+      next:"Write starmap:<id> tags on create + resolve both directions",
+      done:["node → session and session → node both resolve","Survives across Code / Cowork / chat"] },
+    { id:"skill", t:"Wayfinder skill: /park + /branch", status:"open", type:"cowork", x:730, y:300, r:18,
+      prio:1, effort:"M", energy:"deep", blocker:{type:"none"}, sess:"cw-22e11",
+      last:"Drafted the command grammar",
+      next:"Implement /park snapshot → write node file + tag session",
+      done:["/branch forks a linked session","/park captures resume-context + blocker"] },
+    { id:"git", t:"Git graph store", status:"resolved", type:"claude-code", x:290, y:435, r:15,
+      prio:2, effort:"S", energy:"light", blocker:{type:"none"}, sess:"cc-1120f",
+      last:"Committed node schema + example stars",
+      next:"—",
+      done:["Every star is a diffable file","Versioned + portable"] },
+    { id:"decide", t:"Which chat surface is canonical?", status:"blocked", type:"chat", x:895, y:215, r:15,
+      prio:2, effort:"S", energy:"light",
+      blocker:{type:"decision", detail:"Cowork vs Claude Code as the primary home for branched chats. This gates the skill design — pick one to unblock /branch."},
+      sess:"chat-55b02",
+      last:"Listed tradeoffs both ways",
+      next:"Just make the call — this is a you-decision, not a research task",
+      done:["One surface chosen as canonical","Skill targets it by default"] },
+    { id:"cap", t:"Auto-capture on wall-hit", status:"idea", type:"none", x:830, y:170, r:13,
+      prio:3, effort:"M", energy:"deep", blocker:{type:"none"}, sess:null,
+      last:"Branched off the skill thread — 'what if parking were automatic?'",
+      next:"Detect 'I'm stuck' phrasing → offer to park",
+      done:["Wall-hits get captured without me remembering to"] },
+    { id:"mobile", t:"Mobile view of the map", status:"idea", type:"none", x:325, y:180, r:13,
+      prio:3, effort:"L", energy:"light", blocker:{type:"none"}, sess:null,
+      last:"Branched off the dashboard thread while on my phone",
+      next:"Decide: responsive artifact vs native",
+      done:["Glance the constellation from my phone"] },
+    { id:"rec", t:"Triage recommender (what next)", status:"frontier", type:"cowork", x:770, y:520, r:16,
+      prio:2, effort:"M", energy:"light", blocker:{type:"none"}, sess:"cw-88a90",
+      last:"Defined 'unblocked frontier, by priority' heuristic",
+      next:"Fold in energy/effort so it fits the time I actually have",
+      done:["'Pick up next' matches my headspace, not just priority"] },
+    { id:"cost", t:"Cost dashboard idea", status:"idea", type:"chat", x:945, y:565, r:12,
+      prio:3, effort:"S", energy:"admin", blocker:{type:"none"}, sess:"chat-71c33",
+      last:"Branched off the recommender chat",
+      next:"Sketch what 'spend per constellation' would show",
+      done:["See where the credits go"] },
+    { id:"nudge", t:"Weekly stale-thread nudge", status:"open", type:"none", x:640, y:600, r:13,
+      prio:3, effort:"S", energy:"admin", blocker:{type:"none"}, sess:null,
+      last:"Decided a routine should sweep stale frontiers",
+      next:"Schedule a weekly trigger → summarize waiting stars",
+      done:["Monday: 'these 3 have been waiting on you'"] },
+    { id:"proxy", t:"Expressif · proxy teardown", status:"blocked", type:"claude-code", x:1035, y:390, r:15,
+      prio:2, effort:"L", energy:"deep",
+      blocker:{type:"dependency", detail:"Waiting on the serialized adapter contract (§4.3) to land before the teardown can be demoed."},
+      sess:"cc-3aa77",
+      last:"MCP boundary tests passing",
+      next:"Resume once §4.3 merges",
+      done:["One widget channel","Demoable via a built-in tool"] },
+    { id:"cards", t:"Expressif · input cards → one model", status:"parked", type:"claude-code", x:1085, y:545, r:14,
+      prio:2, effort:"M", energy:"deep",
+      blocker:{type:"dependency", detail:"Downstream of the proxy teardown."},
+      sess:"cc-9d004",
+      last:"Native questions unified into one card model — then hit the proxy dependency",
+      next:"Unpark when proxy teardown clears",
+      done:["Input cards become one card model"] }
+  ];
+
+  // edges: {from, to, kind}  kind: partof | depends | blocks | branch
+  let edges = [
+    { from:"dash", to:"wf",   kind:"partof" },
+    { from:"bind", to:"wf",   kind:"partof" },
+    { from:"skill",to:"wf",   kind:"partof" },
+    { from:"rec",  to:"wf",   kind:"partof" },
+    { from:"nudge",to:"wf",   kind:"partof" },
+    { from:"dash", to:"git",  kind:"depends" },
+    { from:"skill",to:"bind", kind:"depends" },
+    { from:"rec",  to:"bind", kind:"depends" },
+    { from:"bind", to:"dash", kind:"blocks" },
+    { from:"decide",to:"skill",kind:"blocks" },
+    { from:"cap",  to:"skill",kind:"branch" },
+    { from:"mobile",to:"dash",kind:"branch" },
+    { from:"cost", to:"rec",  kind:"branch" },
+    { from:"proxy",to:"cards",kind:"blocks" }
+  ];
+
+  const byId = id => nodes.find(n => n.id === id);
+
+  // ---------- view transform (pan/zoom) ----------
+  const svg = $("#map"), vp = $("#viewport"), gEdges = $("#edges"), gNodes = $("#nodes");
+  let view = { x: 0, y: 0, k: 1 };
+  function applyView() { vp.setAttribute("transform", `translate(${view.x},${view.y}) scale(${view.k})`); }
+  function fit() {
+    const pad = 90;
+    const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y);
+    const minX=Math.min(...xs)-pad, maxX=Math.max(...xs)+pad, minY=Math.min(...ys)-pad, maxY=Math.max(...ys)+pad;
+    const r = svg.getBoundingClientRect();
+    svg.setAttribute("viewBox", `0 0 ${r.width} ${r.height}`);
+    const k = Math.min(r.width/(maxX-minX), r.height/(maxY-minY));
+    view.k = Math.min(k, 1.4);
+    view.x = (r.width - (maxX+minX)*view.k)/2;
+    view.y = (r.height - (maxY+minY)*view.k)/2;
+    applyView();
+  }
+
+  // ---------- render ----------
+  let selected = null, recommended = null;
+  const filters = { status: new Set(Object.keys(STATUS)), type: new Set(Object.keys(TYPE)) };
+
+  function visible(n) { return filters.status.has(n.status) && filters.type.has(n.type); }
+
+  function render() {
+    gEdges.textContent = ""; gNodes.textContent = "";
+    // edges
+    edges.forEach(e => {
+      const a = byId(e.from), b = byId(e.to); if (!a || !b) return;
+      const p = el("line", { x1:a.x, y1:a.y, x2:b.x, y2:b.y, class:`edge-line edge-${e.kind}` });
+      if (!(visible(a) && visible(b))) p.setAttribute("opacity", "0.06");
+      gEdges.appendChild(p);
+    });
+    // nodes
+    nodes.forEach(n => {
+      const g = el("g", { class:"node", tabindex:"0", "data-id":n.id, role:"button",
+        "aria-label":`${n.t} — ${STATUS[n.status].label}` });
+      g.style.setProperty("--c", STATUS[n.status].c);
+      if (n.id === selected) g.classList.add("selected");
+      if (n.id === recommended) g.classList.add("recommend");
+      if (!visible(n)) g.classList.add("faded");
+
+      g.appendChild(el("circle", { class:"halo", cx:n.x, cy:n.y, r:n.r*2.1 }));
+      g.appendChild(el("circle", { class:"sel",  cx:n.x, cy:n.y, r:n.r+7 }));
+      const ring = TYPE[n.type].ring;
+      if (ring === 0) g.appendChild(el("circle", { class:"ring", cx:n.x, cy:n.y, r:n.r+3.5 }));
+      if (ring === 1) g.appendChild(el("circle", { class:"ring", cx:n.x, cy:n.y, r:n.r+3.5, "stroke-dasharray":"2 3" }));
+      if (ring === 2) { g.appendChild(el("circle", { class:"ring", cx:n.x, cy:n.y, r:n.r+3.5 })); g.appendChild(el("circle", { class:"ring", cx:n.x, cy:n.y, r:n.r+6.5 })); }
+      const core = el("circle", { class:"core", cx:n.x, cy:n.y, r:n.r });
+      if (n.status === "resolved") core.setAttribute("opacity", ".55");
+      g.appendChild(core);
+
+      const lbl = el("text", { class:"lbl"+(visible(n)?"":" dim"), x:n.x, y:n.y+n.r+16, "text-anchor":"middle" });
+      lbl.textContent = n.t.length > 26 ? n.t.slice(0,25)+"…" : n.t;
+      g.appendChild(lbl);
+      gNodes.appendChild(g);
+    });
+  }
+
+  // ---------- command drawer ----------
+  const drawer = $("#drawer");
+  const relKind = { partof:"part of", depends:"depends on", blocks:"blocks", branch:"branched from" };
+  function relationsFor(id) {
+    const out = [];
+    edges.forEach(e => {
+      if (e.from === id) out.push({ dir:relKind[e.kind], other:e.to });
+      else if (e.to === id) {
+        const inv = e.kind==="blocks" ? "blocked by" : e.kind==="depends" ? "required by" : e.kind==="branch" ? "spawned" : "contains";
+        out.push({ dir:inv, other:e.from });
+      }
+    });
+    return out;
+  }
+  function openDrawer(id) {
+    const n = byId(id); if (!n) return;
+    selected = id; render();
+    const st = STATUS[n.status], ty = TYPE[n.type];
+    const b = n.blocker || {type:"none"};
+    const blockHtml = b.type === "none"
+      ? `<div class="blocker none"><div class="btype">✓ unblocked</div><div class="v" style="color:var(--ink-soft)">Nothing in the way — this can move.</div></div>`
+      : `<div class="blocker"><div class="btype">⚑ ${b.type}</div><div class="v">${b.detail||""}</div></div>`;
+    const rels = relationsFor(id).map(r => {
+      const o = byId(r.other); if (!o) return "";
+      return `<div class="rel" data-goto="${o.id}"><span class="rk">${r.dir}</span><span class="rdot" style="background:${STATUS[o.status].c}"></span><span class="rt">${o.t}</span></div>`;
+    }).join("") || `<div class="v" style="color:var(--ink-faint)">No links yet.</div>`;
+    const done = n.done.map(d => `<div class="di"><span class="box">◇</span><span>${d}</span></div>`).join("");
+    const sess = n.sess
+      ? `<span class="sessref">${ty.glyph} ${ty.label} · <span class="tag">${n.sess}</span></span>`
+      : `<span class="sessref">${ty.glyph} ${ty.label}</span>`;
+
+    drawer.innerHTML = `
+      <div class="drawer-head">
+        <div class="toprow">
+          <span class="pill" style="--c:${st.c}">● ${st.label}</span>
+          <button class="closeb" id="drawerClose" aria-label="Close">✕</button>
+        </div>
+        <h2>${n.t}</h2>
+        ${sess}
+      </div>
+      <div class="drawer-body">
+        <div class="field"><div class="k">Blocker</div>${blockHtml}</div>
+        <div class="field"><div class="k">Resume context</div>
+          <div class="v"><b style="color:var(--ink-soft);font-weight:600">Last:</b> ${n.last}</div>
+          <div class="v" style="margin-top:8px"><b style="color:var(--beacon);font-weight:600">Next:</b> ${n.next}</div>
+        </div>
+        <div class="field"><div class="k">Triage</div>
+          <div class="triage">
+            <div class="t"><div class="tv">P${n.prio}</div><div class="tk">priority</div></div>
+            <div class="t"><div class="tv">${n.effort}</div><div class="tk">effort</div></div>
+            <div class="t"><div class="tv" style="font-size:12.5px">${n.energy}</div><div class="tk">energy</div></div>
+          </div>
+        </div>
+        <div class="field"><div class="k">Relationships</div><div class="rels">${rels}</div></div>
+        <div class="field"><div class="k">Done when</div><div class="done">${done}</div></div>
+      </div>
+      <div class="drawer-actions">
+        <button class="act primary" id="actResume">▸ Resume in ${ty.label}</button>
+        <div class="branchbox" id="branchBox">
+          <input id="branchInput" placeholder="New topic to branch off…" />
+          <button class="act" id="branchGo" style="flex:none">Spin up</button>
+        </div>
+        <button class="act" id="actBranch">⋔ Branch</button>
+        <button class="act" id="actPark">${n.status==="parked"?"↺ Unpark":"⏸ Park"}</button>
+        <button class="act" id="actResolve" style="grid-column:1/-1">${n.status==="resolved"?"↺ Reopen":"✓ Resolve"}</button>
+      </div>`;
+    drawer.classList.add("open"); drawer.setAttribute("aria-hidden","false");
+
+    $("#drawerClose").onclick = closeDrawer;
+    drawer.querySelectorAll(".rel").forEach(r => r.onclick = () => openDrawer(r.dataset.goto));
+    $("#actResume").onclick = () => toast(n.sess ? `Would reopen ${n.sess} and resume with saved context` : "No session yet — Branch to spin one up");
+    $("#actBranch").onclick = () => { $("#branchBox").classList.toggle("show"); $("#branchInput").focus(); };
+    $("#branchGo").onclick = doBranch;
+    $("#branchInput").onkeydown = e => { if (e.key === "Enter") doBranch(); };
+    $("#actPark").onclick = () => { n.status = n.status==="parked" ? "open" : "parked"; openDrawer(id); toast(n.status==="parked"?"Parked · resume-context saved":"Unparked"); computeRecommend(); };
+    $("#actResolve").onclick = () => { n.status = n.status==="resolved" ? "open" : "resolved"; openDrawer(id); toast(n.status==="resolved"?"Star collapsed — resolved ✓":"Reopened"); computeRecommend(); };
+
+    function doBranch() {
+      const topic = ($("#branchInput").value || "").trim();
+      if (!topic) { $("#branchInput").focus(); return; }
+      const nid = "b" + Date.now().toString(36);
+      const ang = Math.random()*Math.PI*2, dist = n.r + 70;
+      nodes.push({ id:nid, t:topic, status:"idea", type:"none", x:n.x+Math.cos(ang)*dist, y:n.y+Math.sin(ang)*dist, r:12,
+        prio:3, effort:"M", energy:n.energy, blocker:{type:"none"}, sess:null,
+        last:`Branched off "${n.t}"`, next:"Give it a first concrete step", done:["(define what done looks like)"] });
+      edges.push({ from:nid, to:id, kind:"branch" });
+      render();
+      const g = gNodes.querySelector(`[data-id="${nid}"]`); if (g) g.classList.add("new-pop");
+      toast("New linked chat spun up · star added to the map");
+      setTimeout(() => openDrawer(nid), 350);
+    }
+  }
+  function closeDrawer() { drawer.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); selected = null; render(); }
+
+  // ---------- recommender ----------
+  function computeRecommend() {
+    // unblocked frontier, lowest priority number wins; tiebreak lighter effort
+    const eff = { S:0, M:1, L:2 };
+    const cand = nodes.filter(n => n.status === "frontier" && (!n.blocker || n.blocker.type === "none"))
+      .sort((a,b) => a.prio - b.prio || eff[a.effort]-eff[b.effort]);
+    recommended = cand.length ? cand[0].id : null;
+    const box = $("#pickup");
+    if (!recommended) { box.innerHTML = `<div class="meta">No unblocked frontier stars. Resolve a blocker to light one up.</div>`; render(); return; }
+    const n = cand[0];
+    box.innerHTML = `
+      <div class="why">frontier · unblocked · P${n.prio} · ${n.effort}</div>
+      <div class="title">${n.t}</div>
+      <div class="meta">${n.next}</div>
+      <button id="focusRec">Focus this star →</button>`;
+    $("#focusRec").onclick = () => { centerOn(n.id); openDrawer(n.id); };
+    render();
+  }
+  function centerOn(id) {
+    const n = byId(id); if (!n) return;
+    const r = svg.getBoundingClientRect();
+    view.k = Math.max(view.k, 1.15);
+    view.x = r.width/2 - n.x*view.k - 60;
+    view.y = r.height/2 - n.y*view.k;
+    applyView();
+  }
+
+  // ---------- toast ----------
+  let toastT;
+  function toast(msg) { $("#toastMsg").textContent = msg; const t = $("#toast"); t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"), 2600); }
+
+  // ---------- chips ----------
+  function buildChips() {
+    const sc = $("#statusChips"); sc.innerHTML = "";
+    Object.entries(STATUS).forEach(([k,v]) => {
+      const b = document.createElement("button");
+      b.className = "chip"; b.setAttribute("aria-pressed","true");
+      b.innerHTML = `<span class="dot" style="--c:${v.c}"></span>${v.label}`;
+      b.onclick = () => { toggle(filters.status, k, b); };
+      sc.appendChild(b);
+    });
+    const tc = $("#typeChips"); tc.innerHTML = "";
+    Object.entries(TYPE).forEach(([k,v]) => {
+      const b = document.createElement("button");
+      b.className = "chip"; b.setAttribute("aria-pressed","true");
+      b.innerHTML = `<span class="dot" style="--c:var(--ink-soft)"></span>${v.label}`;
+      b.onclick = () => { toggle(filters.type, k, b); };
+      tc.appendChild(b);
+    });
+  }
+  function toggle(set, key, btn) {
+    if (set.has(key)) { set.delete(key); btn.setAttribute("aria-pressed","false"); }
+    else { set.add(key); btn.setAttribute("aria-pressed","true"); }
+    render();
+  }
+
+  // ---------- pan / zoom ----------
+  let dragging = false, moved = false, sx=0, sy=0;
+  svg.addEventListener("pointerdown", e => {
+    if (e.target.closest(".node")) return; // node handles its own click
+    dragging = true; moved = false; sx = e.clientX; sy = e.clientY; svg.classList.add("panning"); svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx)+Math.abs(dy) > 3) moved = true;
+    view.x += dx; view.y += dy; sx = e.clientX; sy = e.clientY; applyView();
+  });
+  svg.addEventListener("pointerup", e => { dragging = false; svg.classList.remove("panning"); });
+  svg.addEventListener("pointercancel", () => { dragging = false; svg.classList.remove("panning"); });
+  svg.addEventListener("wheel", e => {
+    e.preventDefault();
+    const r = svg.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    const gx = (px - view.x)/view.k, gy = (py - view.y)/view.k;
+    const f = e.deltaY < 0 ? 1.12 : 1/1.12;
+    view.k = Math.max(0.35, Math.min(3, view.k*f));
+    view.x = px - gx*view.k; view.y = py - gy*view.k; applyView();
+  }, { passive:false });
+
+  // node click / keyboard
+  gNodes.addEventListener("click", e => {
+    const g = e.target.closest(".node"); if (!g || moved) return;
+    openDrawer(g.dataset.id);
+  });
+  gNodes.addEventListener("keydown", e => {
+    const g = e.target.closest(".node"); if (!g) return;
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDrawer(g.dataset.id); }
+  });
+
+  // ---------- starfield ----------
+  const cv = $("#stars"), ctx = cv.getContext("2d");
+  let stars = [], raf, reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function seedStars() {
+    const w = cv.width = cv.clientWidth * devicePixelRatio, h = cv.height = cv.clientHeight * devicePixelRatio;
+    const count = Math.round((w*h)/(9000*devicePixelRatio));
+    stars = Array.from({length: Math.min(count, 260)}, (_,i) => ({
+      x: (i*97.13 % cv.clientWidth), y: ((i*57.31) % cv.clientHeight),
+      r: (i%7===0?1.5:0.6) + (i%3)*0.25, ph: (i%13)/13
+    }));
+  }
+  function starColor() { return getComputedStyle(document.documentElement).getPropertyValue("--star").trim() || "rgba(220,230,255,.8)"; }
+  let tphase = 0;
+  function drawStars() {
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+    const col = starColor();
+    stars.forEach(s => {
+      const tw = reduce ? 1 : 0.55 + 0.45*Math.sin(tphase*1.6 + s.ph*6.28);
+      ctx.globalAlpha = tw;
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+  function loop() { tphase += 0.016; drawStars(); raf = requestAnimationFrame(loop); }
+
+  // ---------- theme ----------
+  function currentDark() {
+    const t = document.documentElement.getAttribute("data-theme");
+    if (t) return t === "dark";
+    return matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  $("#themeBtn").onclick = () => {
+    const next = currentDark() ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    $("#themeBtn").innerHTML = next === "dark" ? "☾ Theme" : "☀ Theme";
+    drawStars();
+  };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", drawStars);
+
+  // ---------- modal + misc ----------
+  $("#archBtn").onclick = () => $("#archModal").classList.add("open");
+  $("#archClose").onclick = () => $("#archModal").classList.remove("open");
+  $("#archModal").addEventListener("click", e => { if (e.target.id === "archModal") $("#archModal").classList.remove("open"); });
+  $("#fitBtn").onclick = fit;
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#archModal").classList.remove("open"); if (drawer.classList.contains("open")) closeDrawer(); } });
+
+  // responsive rail
+  const railBtn = $("#railBtn");
+  function checkNarrow() { const narrow = innerWidth <= 860; railBtn.style.display = narrow ? "inline-flex" : "none"; if (!narrow) $("#rail").classList.remove("open"); }
+  railBtn.onclick = () => $("#rail").classList.toggle("open");
+
+  // ---------- init ----------
+  function resize() { seedStars(); fit(); checkNarrow(); }
+  addEventListener("resize", resize);
+  buildChips();
+  seedStars();
+  render();
+  fit();
+  computeRecommend();
+  checkNarrow();
+  if (reduce) drawStars(); else loop();
+})();
+</script>

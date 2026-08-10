@@ -1,0 +1,22 @@
+{
+  "id": "decide",
+  "title": "Which chat surface is canonical?",
+  "status": "blocked",
+  "session": { "type": "chat", "ref": "chat-55b02" },
+  "resume": {
+    "last": "Listed the tradeoffs both ways",
+    "next": "Just make the call — this is a you-decision, not a research task"
+  },
+  "blocker": {
+    "type": "decision",
+    "detail": "Cowork vs Claude Code as the primary home for branched chats. Gates the skill's /branch target — pick one to unblock the skill work."
+  },
+  "triage": { "priority": 2, "effort": "S", "energy": "light" },
+  "edges": [
+    { "to": "skill", "kind": "blocks" }
+  ],
+  "doneWhen": [
+    "One surface chosen as canonical",
+    "Skill targets it by default"
+  ]
+}
