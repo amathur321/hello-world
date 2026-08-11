@@ -48,6 +48,36 @@ current thread** before context is lost. Don't wait to be asked. Do this:
 
 Keep it one exchange — capture should feel lighter than the wall did.
 
+## Surfaces
+
+Claude Code is the **canonical home**; Cowork and chat are **first-class,
+secondary** surfaces. Keep two roles separate — people conflate them:
+
+- **Home / orchestrator — always Claude Code.** The graph is git-tracked files in
+  this repo, so only Claude Code operates on it natively: the CLI writes nodes,
+  `render` regenerates the map, git commits it, triggers run here. All
+  reconciliation happens here.
+- **Capture — any surface.** A star can be born in chat or Cowork (where many
+  "branch off" sparks land, often on a phone). Capture must be near-zero-friction
+  everywhere: a title + optional link is enough to create a node; triage, edges,
+  and render get enriched later from Claude Code.
+- **Execution target — defaults to Claude Code** when a node graduates to real
+  work that touches the folder structure. But a node keeps its native
+  `session.type`, so `resume` reopens the *right kind* of session.
+
+Binding by surface:
+
+- **claude-code** — full: CLI + tag + commit; `create_session` for a new branch.
+- **cowork** — create / tag / message via the same `claude-code-remote` MCP
+  tools; graph writes reconcile in Claude Code.
+- **chat** — lightest, often capture-only: store `session.type: chat` plus the
+  chat ref; a Claude Code session flushes and renders it on the next sync. If a
+  chat can't reach the repo, treat capture as **deferred** — the spark is saved
+  as a node; enrichment happens later.
+
+Rule of thumb: **capture anywhere, orchestrate in Claude Code, resume where it
+was born.** Decision record: `docs/decisions/0001-canonical-surface.md`.
+
 ## Session binding
 
 Each star binds to a real chat by tag. Use the `claude-code-remote` MCP tools

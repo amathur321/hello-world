@@ -82,11 +82,15 @@ Session enumeration, creation, tagging, and messaging use the
 - **Phase 3 — coverage + nudges.** Full Cowork/chat binding + a weekly trigger that
   summarizes stale frontier stars.
 
-## Open decisions
+## Decisions
 
-1. **Canonical chat surface** — Cowork vs Claude Code as the default home for
-   branched chats. Gates the skill's `/branch` target. *(This is a you-decision,
-   not a research task — it appears as a `blocked: decision` star on the map.)*
-2. **Auto-capture** — should hitting a wall auto-offer to park, or stay manual?
-3. **Dashboard hosting** — regenerated artifact (simple, private) vs a persistent
-   live app (needs state). Phase 1 assumes the former.
+1. **Canonical surface — DECIDED.** Claude Code is the canonical home and
+   orchestrator; Cowork and chat are first-class capture-and-work surfaces. A
+   node keeps its native `session.type` so `resume` reopens the right kind of
+   session. Capture anywhere → orchestrate in Claude Code → resume where it was
+   born. See [`decisions/0001-canonical-surface.md`](decisions/0001-canonical-surface.md).
+2. **Auto-capture — DECIDED.** Hitting a wall proactively offers to park (the
+   skill watches for stuck/blocked phrasing); the map's Park is a capture form.
+3. **Dashboard hosting — open.** Regenerated artifact (simple, private) vs a
+   persistent live app (needs state). Phase 1 assumes the former; Phase 2
+   revisits when the map needs to *drive* sessions live.

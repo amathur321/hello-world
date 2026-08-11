@@ -1,18 +1,17 @@
 {
   "id": "decide",
   "title": "Which chat surface is canonical?",
-  "status": "blocked",
+  "status": "resolved",
   "session": {
     "type": "chat",
     "ref": "chat-55b02"
   },
   "resume": {
-    "last": "Listed the tradeoffs both ways",
-    "next": "Just make the call - this is a you-decision, not a research task"
+    "last": "Chose Claude Code as canonical home; Cowork + chat first-class capture. See docs/decisions/0001-canonical-surface.md",
+    "next": "-"
   },
   "blocker": {
-    "type": "decision",
-    "detail": "Cowork vs Claude Code as the primary home for branched chats. Gates the skill's /branch target - pick one to unblock."
+    "type": "none"
   },
   "triage": {
     "priority": 2,
