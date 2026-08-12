@@ -15,10 +15,7 @@ Usage:
   wf.py render [--html PATH]          Rebuild the dashboard data from the graph
 """
 import sys, os, json, re, argparse, glob, datetime, math
-
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-GRAPH = os.path.join(ROOT, "graph")
-HTML = os.path.join(ROOT, "prototype", "star-map.html")
+from wflib import HOME as ROOT, GRAPH, HTML
 
 STATUS_ORDER = ["blocked", "frontier", "open", "parked", "idea", "resolved"]
 EFFORT = {"S": 0, "M": 1, "L": 2}

@@ -14,10 +14,7 @@ Usage:
   ingest.py [--file PATH] [--surface chat|cowork|code] [--max-snippet N]
 """
 import sys, os, json, glob, argparse, re
-
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-GRAPH = os.path.join(ROOT, "graph")
-IMPORT = os.path.join(ROOT, "import")
+from wflib import HOME as ROOT, GRAPH, IMPORT
 
 
 def find_export(explicit):

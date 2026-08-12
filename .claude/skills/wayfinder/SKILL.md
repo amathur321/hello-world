@@ -16,11 +16,18 @@ A spatial system for work threads that stall. The **graph is the source of
 truth** (`graph/*.json`, one file per star); the dashboard
 (`prototype/star-map.html`) renders it. Full design: `docs/ARCHITECTURE.md`.
 
-Run every graph operation through the CLI so files stay valid:
+Invoke this skill with the **`/wf`** command (or `/wayfinder`). Run every graph
+operation through the CLI so files stay valid:
 
 ```
 python3 .claude/skills/wayfinder/scripts/wf.py <command>
 ```
+
+The CLI finds the graph from any directory via `$WAYFINDER_HOME`, then
+`~/.claude/wayfinder.json`, then by walking up from the current dir. To make
+`/wf` + this skill available in **every** Claude Code session on a machine (not
+just this repo), run `bash .claude/skills/wayfinder/install.sh` once — see
+`docs/install.md`.
 
 Every star has a **`category`** (a constellation: Research, Product, Tooling, a
 project…). The map and `wf.py list` group by it so priority reads by theme. When
