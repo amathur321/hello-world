@@ -39,6 +39,11 @@ Claude; the map reflects the constellation and lets you steer it.
 
 See `graph/schema.json`. Every node carries:
 
+- **`category`** — the top-level grouping (a *constellation*): Research, Product,
+  Tooling, a project name, etc. The map lays each category out as its own cluster
+  so priority reads by theme ("Research has 6 open, 3 waiting on you"). Sub-
+  categories become clusters-within-a-cluster later. Stored on the node (and
+  optionally mirrored as a `graph/<category>/` folder).
 - **`status`** — `idea` → `open`/`frontier` → `blocked`/`parked` → `resolved`.
   `frontier` = unblocked and ready to advance; that is what the recommender picks from.
 - **`session`** — `{ type, ref }` binding to the real chat. `type` ∈

@@ -3,11 +3,12 @@
   "title": "Wayfinder star (node)",
   "description": "One work thread on the star map. The git-tracked source of truth; the dashboard renders these.",
   "type": "object",
-  "required": ["id", "title", "status", "session", "resume", "blocker", "triage", "edges", "doneWhen"],
+  "required": ["id", "title", "category", "status", "session", "resume", "blocker", "triage", "edges", "doneWhen"],
   "additionalProperties": false,
   "properties": {
     "id": { "type": "string", "description": "Stable slug. Also the session tag: starmap:<id>." },
     "title": { "type": "string" },
+    "category": { "type": "string", "description": "Top-level grouping (a constellation), e.g. Research, Product, Tooling. Sub-categories come later." },
     "status": {
       "type": "string",
       "enum": ["idea", "open", "frontier", "blocked", "parked", "resolved"],

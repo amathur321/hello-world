@@ -1,6 +1,7 @@
 {
   "id": "skill",
   "title": "Wayfinder skill: /park + /branch",
+  "category": "Tooling",
   "status": "open",
   "session": {
     "type": "cowork",

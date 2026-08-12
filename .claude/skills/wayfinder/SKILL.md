@@ -22,9 +22,13 @@ Run every graph operation through the CLI so files stay valid:
 python3 .claude/skills/wayfinder/scripts/wf.py <command>
 ```
 
+Every star has a **`category`** (a constellation: Research, Product, Tooling, a
+project…). The map and `wf.py list` group by it so priority reads by theme. When
+capturing or branching, set a category; `branch` inherits the parent's.
+
 | Intent | Command |
 |--------|---------|
-| See everything by status | `wf.py list` |
+| See everything grouped by category | `wf.py list` |
 | What should I work on? | `wf.py next` |
 | Park / capture a thread | `wf.py park <id> --next "…" --blocker decision:"…"` |
 | Branch a topic | `wf.py branch <parent> "Title" --type claude-code` |

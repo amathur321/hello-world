@@ -1,6 +1,7 @@
 {
   "id": "decide",
   "title": "Which chat surface is canonical?",
+  "category": "Research",
   "status": "resolved",
   "session": {
     "type": "chat",

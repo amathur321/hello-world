@@ -1,6 +1,7 @@
 {
   "id": "cap",
   "title": "Auto-capture on wall-hit",
+  "category": "Tooling",
   "status": "idea",
   "session": {
     "type": "none",

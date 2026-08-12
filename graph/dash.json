@@ -1,6 +1,7 @@
 {
   "id": "dash",
   "title": "Star-map dashboard",
+  "category": "Product",
   "status": "open",
   "session": {
     "type": "claude-code",

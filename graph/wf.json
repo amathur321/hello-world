@@ -1,6 +1,7 @@
 {
   "id": "wf",
   "title": "Wayfinder (the whole idea)",
+  "category": "Product",
   "status": "open",
   "session": {
     "type": "chat",

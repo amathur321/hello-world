@@ -1,6 +1,7 @@
 {
   "id": "bind",
   "title": "Session <-> node binding",
+  "category": "Tooling",
   "status": "frontier",
   "session": {
     "type": "claude-code",

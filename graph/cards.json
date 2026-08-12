@@ -1,6 +1,7 @@
 {
   "id": "cards",
   "title": "Expressif - input cards -> one model",
+  "category": "Expressif",
   "status": "parked",
   "session": {
     "type": "claude-code",

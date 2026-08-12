@@ -1,6 +1,7 @@
 {
   "id": "rec",
   "title": "Triage recommender (what next)",
+  "category": "Research",
   "status": "frontier",
   "session": {
     "type": "cowork",

@@ -1,6 +1,7 @@
 {
   "id": "nudge",
   "title": "Weekly stale-thread nudge",
+  "category": "Tooling",
   "status": "open",
   "session": {
     "type": "none",

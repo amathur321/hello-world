@@ -1,6 +1,7 @@
 {
   "id": "proxy",
   "title": "Expressif - proxy teardown",
+  "category": "Expressif",
   "status": "blocked",
   "session": {
     "type": "claude-code",

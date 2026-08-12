@@ -1,6 +1,7 @@
 {
   "id": "git",
   "title": "Git graph store",
+  "category": "Tooling",
   "status": "resolved",
   "session": {
     "type": "claude-code",

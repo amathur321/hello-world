@@ -1,6 +1,7 @@
 {
   "id": "cost",
   "title": "Cost dashboard idea",
+  "category": "Product",
   "status": "idea",
   "session": {
     "type": "chat",
