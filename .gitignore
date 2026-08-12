@@ -1,0 +1,3 @@
+# Raw Claude exports and staged import artifacts — kept local, never committed.
+# Only derived stars (title, short snippet, dates, category) land in graph/.
+import/

@@ -34,6 +34,7 @@ capturing or branching, set a category; `branch` inherits the parent's.
 | Branch a topic | `wf.py branch <parent> "Title" --type claude-code` |
 | Resume a thread | `wf.py resume <id>` |
 | Refresh the dashboard | `wf.py render` |
+| Backfill from a Claude export | `ingest.py` (see `docs/import-guide.md`), then categorize + file |
 
 ## Auto-park (proactive)
 
