@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Wayfinder star (node)",
+  "description": "One work thread on the star map. The git-tracked source of truth; the dashboard renders these.",
+  "type": "object",
+  "required": ["id", "title", "category", "status", "session", "resume", "blocker", "triage", "edges", "doneWhen"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "description": "Stable slug. Also the session tag: starmap:<id>." },
+    "title": { "type": "string" },
+    "category": { "type": "string", "description": "Top-level grouping (a constellation), e.g. Research, Product, Tooling. Sub-categories come later." },
+    "status": {
+      "type": "string",
+      "enum": ["idea", "open", "frontier", "blocked", "parked", "resolved"],
+      "description": "frontier = unblocked and ready to advance (what /wf next picks from)."
+    },
+    "session": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["claude-code", "cowork", "chat", "none"] },
+        "ref": { "type": ["string", "null"], "description": "Session id; mirrored as the starmap:<id> tag on the session." }
+      }
+    },
+    "resume": {
+      "type": "object",
+      "required": ["last", "next"],
+      "additionalProperties": false,
+      "properties": {
+        "last": { "type": "string", "description": "What I was doing." },
+        "next": { "type": "string", "description": "The exact concrete next step." }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "enum": ["none", "decision", "dependency", "research"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "triage": {
+      "type": "object",
+      "required": ["priority", "effort", "energy"],
+      "additionalProperties": false,
+      "properties": {
+        "priority": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "effort": { "type": "string", "enum": ["S", "M", "L"] },
+        "energy": { "type": "string", "enum": ["deep", "light", "admin"] }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["to", "kind"],
+        "additionalProperties": false,
+        "properties": {
+          "to": { "type": "string", "description": "Target node id." },
+          "kind": { "type": "string", "enum": ["part-of", "depends", "blocks", "branch"] }
+        }
+      }
+    },
+    "doneWhen": { "type": "array", "items": { "type": "string" } },
+    "pos": {
+      "type": "object",
+      "description": "Optional saved map position; the dashboard lays out unpinned nodes automatically.",
+      "properties": { "x": { "type": "number" }, "y": { "type": "number" } }
+    },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  }
+}
