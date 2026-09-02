@@ -38,6 +38,25 @@ I then run, in order:
 3. On your OK — promote the staged records into real stars in `graph/`,
    `render` the map, and commit. Your backlog is now a constellation.
 
+## Also backfill your local Claude Code sessions
+
+Claude Code stores every local session on disk at
+`~/.claude/projects/<project>/<session-id>.jsonl`. To pull those onto the map,
+run this on each machine you code from:
+
+```
+python3 .claude/skills/wayfinder/scripts/ingest.py --source code
+```
+
+It scans your local session logs and stages them (title from the opening
+message, message count, dates, and the **project folder** — a strong category
+signal). Paste the resulting `import/inbox.md` back the same way.
+
+Coverage caveat: this reads **local** sessions on that machine's disk. Sessions
+you ran in the **cloud** (web / remote) don't live on your disk — they're only
+visible via the live API and are handled by the weekly Routine going forward.
+Run `--source code` on every machine you code from to catch them all.
+
 ## Controls
 
 - **Snippet length** — `ingest.py --max-snippet N` (default 240 chars) caps how

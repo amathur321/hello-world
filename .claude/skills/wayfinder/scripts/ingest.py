@@ -102,23 +102,93 @@ def month_hist(records):
     return dict(sorted(hist.items()))
 
 
+# ---------- Claude Code local sessions ( ~/.claude/projects/<proj>/<id>.jsonl ) ----------
+def code_text(msg):
+    if not isinstance(msg, dict):
+        return ""
+    c = msg.get("content")
+    if isinstance(c, str):
+        return c.strip()
+    if isinstance(c, list):
+        out = []
+        for b in c:
+            if isinstance(b, dict) and b.get("type") == "text":
+                out.append(b.get("text", ""))
+            elif isinstance(b, str):
+                out.append(b)
+        return " ".join(out).strip()
+    return ""
+
+
+def parse_code_session(path, max_snippet):
+    sid = os.path.splitext(os.path.basename(path))[0]
+    project = os.path.basename(os.path.dirname(path))
+    first_text, msgs, tss = "", 0, []
+    try:
+        with open(path) as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except Exception:
+                    continue
+                if d.get("timestamp"):
+                    tss.append(d["timestamp"])
+                t = d.get("type")
+                if t in ("user", "assistant"):
+                    msgs += 1
+                if t == "user" and not first_text:
+                    first_text = code_text(d.get("message"))
+    except Exception:
+        return None
+    snippet = re.sub(r"\s+", " ", first_text)[:max_snippet]
+    return {
+        "src": sid,
+        "title": (first_text[:60].strip() if first_text else "Claude Code session"),
+        "created": tss[0] if tss else "",
+        "updated": tss[-1] if tss else "",
+        "messages": msgs,
+        "snippet": snippet,
+        "project": project,
+    }
+
+
+def collect_code(projects_dir, max_snippet):
+    out = []
+    for path in glob.glob(os.path.join(projects_dir, "*", "*.jsonl")):
+        r = parse_code_session(path, max_snippet)
+        if r and r["messages"] > 0:
+            out.append(r)
+    return out
+
+
 def main():
     p = argparse.ArgumentParser(prog="ingest.py")
-    p.add_argument("--file")
-    p.add_argument("--surface", default="chat", choices=["chat", "cowork", "code"])
+    p.add_argument("--source", default="chat", choices=["chat", "code"],
+                   help="chat = a claude.ai export JSON; code = local Claude Code session logs")
+    p.add_argument("--file", help="chat export path (defaults to import/conversations.json)")
+    p.add_argument("--projects-dir", default=os.path.expanduser("~/.claude/projects"),
+                   help="where Claude Code stores local session transcripts")
     p.add_argument("--max-snippet", type=int, default=240)
     a = p.parse_args()
 
     os.makedirs(IMPORT, exist_ok=True)
-    path = find_export(a.file)
-    convs = load(path)
     filed = already_filed()
 
+    if a.source == "code":
+        raw = collect_code(a.projects_dir, a.max_snippet)
+        origin = a.projects_dir
+    else:
+        path = find_export(a.file)
+        raw = [parse(c, a.max_snippet) for c in load(path)]
+        origin = os.path.relpath(path, ROOT)
+
     records, skipped = [], 0
-    for c in convs:
-        r = parse(c, a.max_snippet)
-        r["surface"] = a.surface
-        if r["src"] and r["src"] in filed:
+    for r in raw:
+        r["surface"] = a.source
+        if r.get("src") and r["src"] in filed:
             skipped += 1
             continue
         records.append(r)
@@ -128,26 +198,28 @@ def main():
         json.dump(records, f, indent=2)
 
     # a compact, human-scannable digest (local only)
-    lines = [f"# Import digest — {len(records)} new conversations ({a.surface})", ""]
+    lines = [f"# Import digest — {len(records)} new {a.source} sessions", ""]
     hist = month_hist(records)
     if hist:
         lines.append("By month: " + "  ".join(f"{k}:{v}" for k, v in hist.items()))
         lines.append("")
-    lines.append("| updated | msgs | title | opening snippet |")
-    lines.append("|---|---|---|---|")
+    has_proj = any(r.get("project") for r in records)
+    lines.append("| updated | msgs | " + ("project | " if has_proj else "") + "title | opening snippet |")
+    lines.append("|---|---|" + ("---|" if has_proj else "") + "---|---|")
     for r in records:
         t = r["title"].replace("|", "/")[:60]
         s = r["snippet"].replace("|", "/")[:80]
-        lines.append(f"| {(r['updated'] or '')[:10]} | {r['messages']} | {t} | {s} |")
+        proj = (r.get("project", "").replace("|", "/")[:24] + " | ") if has_proj else ""
+        lines.append(f"| {(r['updated'] or '')[:10]} | {r['messages']} | {proj}{t} | {s} |")
     with open(os.path.join(IMPORT, "inbox.md"), "w") as f:
         f.write("\n".join(lines) + "\n")
 
-    print(f"Parsed {len(convs)} conversations from {os.path.relpath(path, ROOT)}")
+    print(f"Ingested {a.source} from {origin}")
     print(f"  staged {len(records)} new, skipped {skipped} already filed")
     if hist:
         print("  span: " + min(hist) + " -> " + max(hist))
     print(f"  -> import/staged.json + import/inbox.md (gitignored)")
-    print("Next: run the AI categorization pass to propose a taxonomy and file these as stars.")
+    print("Next: paste import/inbox.md back to Claude to categorize + file (or run the categorization pass).")
 
 
 if __name__ == "__main__":
